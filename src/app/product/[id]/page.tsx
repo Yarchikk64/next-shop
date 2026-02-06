@@ -1,132 +1,142 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import React from 'react';
+import { useParams, useRouter } from 'next/navigation';
+// Используем специализированный хук для одного товара
 import { useGetProductByIdQuery } from '@/store/services/productApi';
 import { useAppDispatch } from '@/store/hooks';
 import { addToCart } from '@/store/cartSlice';
 import { formatPrice } from '@/utils/formatPrice';
-import Button from '@/components/atoms/Button';
+import { Star, ChevronLeft, ShoppingBag, ShieldCheck, Truck, RotateCcw } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { ChevronLeft, Star, ShieldCheck, Truck } from 'lucide-react';
-import Link from 'next/link';
 
 export default function ProductPage() {
   const { id } = useParams();
+  const router = useRouter();
   const dispatch = useAppDispatch();
   
-  const { data: product, isLoading, error } = useGetProductByIdQuery(id as string);
-
-  const [activeImage, setActiveImage] = useState<string>('');
-
-  useEffect(() => {
-    if (product) {
-      setActiveImage(product.thumbnail);
-    }
-  }, [product]);
+  // Запрашиваем товар напрямую по ID из URL
+  const { data: product, isLoading, error } = useGetProductByIdQuery(Number(id));
 
   if (isLoading) return (
-    <div className="max-w-7xl mx-auto px-4 py-20 text-center animate-pulse text-gray-400">
-      Loading product details...
+    <div className="min-h-screen flex items-center justify-center bg-[#FDFBF7]">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#800020]"></div>
     </div>
   );
 
+  // Если API выдал ошибку или товара нет — показываем нормальный экран
   if (error || !product) return (
-    <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-      <h1 className="text-2xl font-bold">Product not found</h1>
-      <Link href="/" className="text-blue-600 hover:underline mt-4 block">Back to Catalog</Link>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#FDFBF7]">
+      <h2 className="text-3xl font-serif italic mb-6 text-gray-900">Piece not found</h2>
+      <button 
+        onClick={() => router.push('/')} 
+        className="bg-[#800020] text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-[#600018] transition-all"
+      >
+        Back to Collection
+      </button>
     </div>
   );
 
   const handleAddToCart = () => {
     dispatch(addToCart(product));
-    toast.success(`${product.title} added to cart!`);
+    toast.success(`${product.title} added to bag`, {
+      style: {
+        borderRadius: '20px',
+        background: '#800020',
+        color: '#fff',
+        fontWeight: '900',
+        textTransform: 'uppercase',
+        fontSize: '12px',
+        letterSpacing: '0.1em'
+      },
+    });
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
-      <Link href="/" className="flex items-center gap-2 text-sm text-gray-500 hover:text-black mb-8 transition-colors">
-        <ChevronLeft size={16} /> Back to Catalog
-      </Link>
+    <div className="min-h-screen bg-[#FDFBF7] pb-20">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <button 
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-gray-400 hover:text-[#800020] transition-colors group font-black uppercase tracking-widest text-[10px]"
+        >
+          <ChevronLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+          Back
+        </button>
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        <div className="space-y-4">
-          <div className="aspect-square relative overflow-hidden rounded-3xl border bg-gray-50 flex items-center justify-center">
-            <img 
-              src={activeImage || product.thumbnail}
-              alt={product.title} 
-              className="h-full w-full object-contain p-8 transition-all duration-300"
-            />
-          </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-start">
           
-          <div className="grid grid-cols-4 gap-4">
-            {[product.thumbnail, ...(product.images || [])].slice(0, 5).map((img, index) => (
-              <button 
-                key={index} 
-                onClick={() => setActiveImage(img)}
-                className={`aspect-square rounded-xl border overflow-hidden bg-gray-50 transition-all ${
-                  activeImage === img ? 'border-blue-600 ring-2 ring-blue-100' : 'hover:opacity-75'
-                }`}
-              >
-                <img src={img} alt="" className="h-full w-full object-cover" />
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex flex-col">
-          <div className="mb-6">
-            <span className="text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-wider">
-              {product.category}
-            </span>
-            <h1 className="text-4xl font-bold text-gray-900 mt-4">{product.title}</h1>
-            
-            <div className="flex items-center gap-4 mt-4 text-sm">
-              <div className="flex items-center gap-1 text-yellow-500 font-bold">
-                <Star size={18} fill="currentColor" /> {product.rating}
-              </div>
-              <span className="text-gray-400">|</span>
-              <span className="text-gray-500">In Stock: {product.stock}</span>
+          {/* Изображение */}
+          <div className="relative group">
+            <div className="aspect-square rounded-[3.5rem] bg-white border border-brand-100 overflow-hidden p-12 flex items-center justify-center shadow-premium transition-transform duration-500 hover:scale-[1.02]">
+              <img 
+                src={product.thumbnail} 
+                alt={product.title}
+                className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-110"
+              />
             </div>
           </div>
 
-          <p className="text-gray-600 leading-relaxed mb-8">
-            {product.description}
-          </p>
+          {/* Инфо */}
+          <div className="space-y-10">
+            <div className="space-y-4">
+              <p className="text-[11px] font-black text-[#800020] uppercase tracking-[0.4em]">
+                {product.category}
+              </p>
+              <h1 className="text-6xl font-serif font-bold italic text-gray-900 leading-[1.1]">
+                {product.title}
+              </h1>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5 bg-[#800020] px-3 py-1 rounded-full shadow-lg shadow-brand-600/20">
+                  <Star size={14} className="fill-white text-white" />
+                  <span className="font-black text-[12px] text-white">{product.rating}</span>
+                </div>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest border-l pl-4 border-gray-200">
+                  Limited Edition
+                </span>
+              </div>
+            </div>
 
-          <div className="mt-auto">
-            <div className="flex items-baseline gap-4 mb-8">
-              <span className="text-4xl font-extrabold text-gray-900">
+            <div className="flex items-baseline gap-4">
+              <span className="text-5xl font-black text-[#800020] tracking-tighter">
                 {formatPrice(product.price)}
               </span>
-              <span className="text-xl text-gray-400 line-through">
-                {formatPrice(product.price * 1.2)} 
+            </div>
+
+            <p className="text-gray-600 leading-relaxed text-xl italic font-medium max-w-lg">
+              {product.description}
+            </p>
+
+            {/* Траст-блоки */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 py-8 border-y border-brand-100">
+              <div className="flex flex-col gap-2">
+                <Truck size={24} className="text-[#800020]" />
+                <span className="text-[9px] font-black uppercase tracking-widest text-gray-900">Global Delivery</span>
+              </div>
+              <div className="flex flex-col gap-2">
+                <ShieldCheck size={24} className="text-[#800020]" />
+                <span className="text-[9px] font-black uppercase tracking-widest text-gray-900">Secure Payment</span>
+              </div>
+              <div className="flex flex-col gap-2">
+                <RotateCcw size={24} className="text-[#800020]" />
+                <span className="text-[9px] font-black uppercase tracking-widest text-gray-900">Easy Returns</span>
+              </div>
+            </div>
+
+            {/* Кнопка — теперь она идеальна */}
+            <button 
+              onClick={handleAddToCart}
+              className="w-full bg-[#800020] text-white py-7 rounded-[2rem] flex items-center justify-center gap-4 group shadow-2xl shadow-brand-600/40 hover:bg-[#600018] active:scale-[0.98] transition-all duration-300"
+            >
+              <ShoppingBag size={24} className="group-hover:rotate-12 transition-transform" />
+              <span className="text-xl font-black uppercase tracking-[0.2em] drop-shadow-md">
+                Add to Bag
               </span>
-            </div>
-
-            <Button size="lg" className="w-full md:w-auto px-12 py-7 text-lg shadow-xl shadow-blue-200" onClick={handleAddToCart}>
-              Add to Cart
-            </Button>
-
-            <div className="grid grid-cols-2 gap-4 mt-12 pt-8 border-t">
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-green-50 text-green-600 rounded-lg"><Truck size={20} /></div>
-                <div>
-                  <p className="text-sm font-bold">Free Shipping</p>
-                  <p className="text-xs text-gray-500">Orders over $50</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="p-2 bg-orange-50 text-orange-600 rounded-lg"><ShieldCheck size={20} /></div>
-                <div>
-                  <p className="text-sm font-bold">2 Year Warranty</p>
-                  <p className="text-xs text-gray-500">Full protection</p>
-                </div>
-              </div>
-            </div>
+            </button>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

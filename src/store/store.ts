@@ -1,19 +1,15 @@
 import { configureStore } from '@reduxjs/toolkit';
+import { productApi } from './services/productApi';
 import cartReducer from './cartSlice';
-import { localStorageMiddleware } from './middleware';
-import { productApi } from '@/store/services/productApi';
 
-export const makeStore = () => {
-  return configureStore({
-    reducer: {
-      cart: cartReducer,
-      [productApi.reducerPath]: productApi.reducer,
-    },
-    middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware().concat(productApi.middleware, localStorageMiddleware),
-  });
-};
+export const store = configureStore({
+  reducer: {
+    [productApi.reducerPath]: productApi.reducer,
+    cart: cartReducer,
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(productApi.middleware),
+});
 
-export type AppStore = ReturnType<typeof makeStore>;
-export type RootState = ReturnType<AppStore['getState']>;
-export type AppDispatch = AppStore['dispatch'];
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;

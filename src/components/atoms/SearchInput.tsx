@@ -22,17 +22,17 @@ export const SearchInput = ({ onSearch }: SearchInputProps) => {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [value, onSearch]);
+  }, [value]); 
 
   return (
-    <div className="relative w-full max-w-md">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+    <div className="relative w-full">
+      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-600/40" size={18} />
       <input
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Search items..."
-        className="w-full rounded-full border border-gray-200 py-2 pl-10 pr-4 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        placeholder="Search our collection..."
+        className="w-full bg-white border-2 border-brand-100 rounded-2xl py-3 pl-12 pr-4 text-sm font-medium outline-none focus:border-brand-600 transition-all placeholder:text-gray-300 shadow-sm"
       />
     </div>
   );
