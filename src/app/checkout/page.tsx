@@ -1,14 +1,59 @@
 'use client';
 
-import React from 'react';
-import { useAppSelector } from '@/store/hooks';
+import React, { useState, useEffect } from 'react';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
+import { clearCart } from '@/store/cartSlice';
 import { formatPrice } from '@/utils/formatPrice';
 import Link from 'next/link';
 import { ChevronLeft, CreditCard, ShieldCheck, Truck } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function CheckoutPage() {
   const { items } = useAppSelector((state) => state.cart);
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  
+  const [mounted, setMounted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const handlePayNow = async () => {
+    console.log("Попытка оплаты...");
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: items,
+          total: totalPrice,
+          email: "customer@example.com",
+        }),
+      });
+
+      if (response.ok) {
+        alert('Заказ успешно создан в MongoDB!');
+        dispatch(clearCart());
+        router.push('/');
+      } else {
+        const errorData = await response.json();
+        alert(`Ошибка: ${errorData.error || 'Не удалось создать заказ'}`);
+      }
+    } catch (error) {
+      console.error("Ошибка при отправке:", error);
+      alert('Ошибка соединения с сервером');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!mounted) return null;
 
   if (items.length === 0) {
     return (
@@ -24,14 +69,12 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-[#FDFBF7] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
-        {/* Back Button */}
         <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-[#800020] transition-colors mb-8 group">
           <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
           <span className="text-xs font-black uppercase tracking-widest">Back to store</span>
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-          {/* Left Side: Form */}
           <div className="space-y-10">
             <div>
               <h1 className="text-4xl font-serif font-bold italic text-gray-900 mb-2">Checkout</h1>
@@ -66,7 +109,6 @@ export default function CheckoutPage() {
             </section>
           </div>
 
-          {/* Right Side: Order Summary */}
           <div className="lg:sticky lg:top-32 h-fit">
             <div className="bg-white rounded-[2.5rem] p-8 shadow-premium border border-brand-100">
               <h2 className="text-xl font-bold text-gray-900 mb-6 uppercase tracking-wider">Order Summary</h2>
@@ -103,8 +145,12 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              <button className="w-full bg-[#800020] text-white py-6 rounded-2xl mt-8 font-black uppercase tracking-[0.2em] shadow-xl shadow-brand-600/20 hover:bg-[#600018] transition-all active:scale-[0.98]">
-                Pay Now
+              <button 
+                onClick={handlePayNow}
+                disabled={isSubmitting}
+                className="w-full bg-[#800020] text-white py-6 rounded-2xl mt-8 font-black uppercase tracking-[0.2em] shadow-xl shadow-brand-600/20 hover:bg-[#600018] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? 'Processing...' : 'Pay Now'}
               </button>
 
               <div className="mt-6 flex items-center justify-center gap-2 text-gray-400">
@@ -118,7 +164,18 @@ export default function CheckoutPage() {
 
       <style jsx>{`
         .checkout-input {
-          @apply w-full bg-white border-2 border-brand-100 rounded-xl px-5 py-4 text-sm font-medium outline-none transition-all focus:border-[#800020] focus:ring-0 placeholder:text-gray-300;
+          width: 100%;
+          background-color: white;
+          border: 2px solid #f3f4f6;
+          border-radius: 0.75rem;
+          padding: 1rem 1.25rem;
+          font-size: 0.875rem;
+          font-weight: 500;
+          outline: none;
+          transition: all 0.2s;
+        }
+        .checkout-input:focus {
+          border-color: #800020;
         }
       `}</style>
     </div>

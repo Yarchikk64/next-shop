@@ -1,18 +1,48 @@
 'use client';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { removeFromCart, updateQuantity } from '@/store/cartSlice';
+import { removeFromCart, updateQuantity, clearCart } from '@/store/cartSlice'; // Добавь clearCart в слайс
 import { formatPrice } from '@/utils/formatPrice';
 import Button from '@/components/atoms/Button';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Trash2, Minus, Plus } from 'lucide-react';
+import { useState } from 'react';
 
 export default function CartPage() {
   const dispatch = useAppDispatch();
   const { items } = useAppSelector((state) => state.cart);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const handleCheckout = async () => {
+    console.log("Кнопка нажата! Начинаем оформление...");
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: items, // Реальные товары из Redux
+          total: totalPrice,
+          email: "customer@example.com", // Пока заглушка, позже прикрутим Auth
+        }),
+      });
+
+      if (response.ok) {
+        alert('Заказ успешно оформлен!');
+        dispatch(clearCart()); // Очищаем Redux стор
+      } else {
+        alert('Ошибка при оформлении заказа');
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Произошла ошибка');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (items.length === 0) {
     return (
@@ -43,7 +73,7 @@ export default function CartPage() {
 
             <div className="flex items-center gap-2">
               <button 
-                onClick={() => dispatch(updateQuantity({ id: item.id, quantity: item.quantity - 1 }))}
+                onClick={() => dispatch(updateQuantity({ id: item.id, quantity: Math.max(1, item.quantity - 1) }))}
                 className="p-1 hover:bg-gray-100 rounded"
               >
                 <Minus size={16} />
@@ -71,8 +101,14 @@ export default function CartPage() {
         <div className="text-xl font-bold mb-4">
           Итого: {formatPrice(totalPrice)}
         </div>
-        <Button variant="primary" size="lg" className="w-full sm:w-auto">
-          Оформить заказ
+        <Button 
+          variant="primary" 
+          size="lg" 
+          className="w-full sm:w-auto"
+          onClick={handleCheckout} // Привязываем функцию!
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Оформление...' : 'Оформить заказ'}
         </Button>
       </div>
     </main>
