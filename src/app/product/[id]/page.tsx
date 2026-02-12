@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
-// Используем специализированный хук для одного товара
 import { useGetProductByIdQuery } from '@/store/services/productApi';
 import { useAppDispatch } from '@/store/hooks';
 import { addToCart } from '@/store/cartSlice';
@@ -15,7 +14,6 @@ export default function ProductPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   
-  // Запрашиваем товар напрямую по ID из URL
   const { data: product, isLoading, error } = useGetProductByIdQuery(Number(id));
 
   if (isLoading) return (
@@ -24,7 +22,6 @@ export default function ProductPage() {
     </div>
   );
 
-  // Если API выдал ошибку или товара нет — показываем нормальный экран
   if (error || !product) return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#FDFBF7]">
       <h2 className="text-3xl font-serif italic mb-6 text-gray-900">Piece not found</h2>
@@ -67,7 +64,6 @@ export default function ProductPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-start">
           
-          {/* Изображение */}
           <div className="relative group">
             <div className="aspect-square rounded-[3.5rem] bg-white border border-brand-100 overflow-hidden p-12 flex items-center justify-center shadow-premium transition-transform duration-500 hover:scale-[1.02]">
               <img 
@@ -78,7 +74,6 @@ export default function ProductPage() {
             </div>
           </div>
 
-          {/* Инфо */}
           <div className="space-y-10">
             <div className="space-y-4">
               <p className="text-[11px] font-black text-[#800020] uppercase tracking-[0.4em]">
@@ -108,7 +103,6 @@ export default function ProductPage() {
               {product.description}
             </p>
 
-            {/* Траст-блоки */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 py-8 border-y border-brand-100">
               <div className="flex flex-col gap-2">
                 <Truck size={24} className="text-[#800020]" />
@@ -124,7 +118,6 @@ export default function ProductPage() {
               </div>
             </div>
 
-            {/* Кнопка — теперь она идеальна */}
             <button 
               onClick={handleAddToCart}
               className="w-full bg-[#800020] text-white py-7 rounded-[2rem] flex items-center justify-center gap-4 group shadow-2xl shadow-brand-600/40 hover:bg-[#600018] active:scale-[0.98] transition-all duration-300"

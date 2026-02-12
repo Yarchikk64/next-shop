@@ -2,7 +2,7 @@ import { Playfair_Display, Inter } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/organisms/Header';
 import { Providers } from '@/store/provider';
-import { Toaster } from 'react-hot-toast'; // Импортируем Toaster
+import { Toaster } from 'react-hot-toast';
 
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' });
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -15,14 +15,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Header />
           {children}
           
-          {/* Контейнер для уведомлений */}
           <Toaster 
             position="bottom-right" 
             toastOptions={{
-              // Стили по умолчанию для всех уведомлений
               duration: 3000,
               style: {
-                background: '#800020', // Наш бордовый
+                background: '#800020', 
                 color: '#ffffff',
                 borderRadius: '16px',
                 padding: '16px 24px',
@@ -32,7 +30,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 letterSpacing: '0.1em',
                 boxShadow: '0 10px 25px -5px rgba(128, 0, 32, 0.3)',
               },
-              // Настройка иконки успеха
               success: {
                 iconTheme: {
                   primary: '#ffffff',

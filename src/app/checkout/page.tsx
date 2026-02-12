@@ -16,55 +16,73 @@ export default function CheckoutPage() {
   const [mounted, setMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [formData, setFormData] = useState({
+  firstName: '',
+  lastName: '',
+  email: '',
+  address: '',
+  city: '',
+  postalCode: ''
+  });
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const handlePayNow = async () => {
-    console.log("Попытка оплаты...");
-    setIsSubmitting(true);
-
-    try {
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: items,
-          total: totalPrice,
-          email: "customer@example.com",
-        }),
-      });
-
-      if (response.ok) {
-        alert('Заказ успешно создан в MongoDB!');
-        dispatch(clearCart());
-        router.push('/');
-      } else {
-        const errorData = await response.json();
-        alert(`Ошибка: ${errorData.error || 'Не удалось создать заказ'}`);
-      }
-    } catch (error) {
-      console.error("Ошибка при отправке:", error);
-      alert('Ошибка соединения с сервером');
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const { placeholder, value } = e.target;
+  const nameMap: { [key: string]: string } = {
+    "First Name": "firstName",
+    "Last Name": "lastName",
+    "Email Address": "email",
+    "Address": "address",
+    "City": "city",
+    "Postal Code": "postalCode"
   };
 
-  if (!mounted) return null;
-
-  if (items.length === 0) {
-    return (
-      <div className="min-h-screen bg-brand-50 flex flex-col items-center justify-center p-4">
-        <h1 className="text-3xl font-serif italic mb-6">Your bag is empty</h1>
-        <Link href="/" className="bg-[#800020] text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest">
-          Go to Catalog
-        </Link>
-      </div>
-    );
+  setFormData(prev => ({
+    ...prev,
+    [nameMap[placeholder]]: value
+    }));
   }
+
+  const handlePayNow = async () => {
+  if (!formData.email || !formData.address || !formData.firstName) {
+    alert("Please fill in your name, email, and shipping address.");
+    return;
+  }
+
+  console.log("Processing order for:", formData.email);
+  setIsSubmitting(true);
+
+  try {
+    const response = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items: items,
+        total: totalPrice,
+        email: formData.email,
+      }),
+    });
+
+    if (response.ok) {
+      alert(`Success! Thank you, ${formData.firstName}. Your order has been placed.`);
+      dispatch(clearCart());
+      router.push('/');
+    } else {
+      const errorData = await response.json();
+      alert(`Error: ${errorData.error || 'Failed to create order'}`);
+    }
+  } catch (error) {
+    console.error("Submission error:", error);
+    alert('Connection error. Please try again.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] py-12 px-4 sm:px-6 lg:px-8">
@@ -86,13 +104,49 @@ export default function CheckoutPage() {
                 <Truck size={18} /> Shipping Address
               </h2>
               <div className="grid grid-cols-2 gap-4">
-                <input type="text" placeholder="First Name" className="checkout-input col-span-1" />
-                <input type="text" placeholder="Last Name" className="checkout-input col-span-1" />
-                <input type="email" placeholder="Email Address" className="checkout-input col-span-2" />
-                <input type="text" placeholder="Address" className="checkout-input col-span-2" />
-                <input type="text" placeholder="City" className="checkout-input col-span-1" />
-                <input type="text" placeholder="Postal Code" className="checkout-input col-span-1" />
-              </div>
+  <input 
+    type="text" 
+    placeholder="First Name" 
+    className="checkout-input col-span-1" 
+    value={formData.firstName}
+    onChange={handleInputChange}
+  />
+  <input 
+    type="text" 
+    placeholder="Last Name" 
+    className="checkout-input col-span-1" 
+    value={formData.lastName}
+    onChange={handleInputChange}
+  />
+  <input 
+    type="email" 
+    placeholder="Email Address" 
+    className="checkout-input col-span-2" 
+    value={formData.email}
+    onChange={handleInputChange}
+  />
+  <input 
+    type="text" 
+    placeholder="Address" 
+    className="checkout-input col-span-2" 
+    value={formData.address}
+    onChange={handleInputChange}
+  />
+  <input 
+    type="text" 
+    placeholder="City" 
+    className="checkout-input col-span-1" 
+    value={formData.city}
+    onChange={handleInputChange}
+  />
+  <input 
+    type="text" 
+    placeholder="Postal Code" 
+    className="checkout-input col-span-1" 
+    value={formData.postalCode}
+    onChange={handleInputChange}
+  />
+</div>
             </section>
 
             <section className="space-y-4">

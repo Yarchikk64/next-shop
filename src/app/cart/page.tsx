@@ -24,15 +24,15 @@ export default function CartPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: items, // Реальные товары из Redux
+          items: items,
           total: totalPrice,
-          email: "customer@example.com", // Пока заглушка, позже прикрутим Auth
+          email: "customer@example.com", 
         }),
       });
 
       if (response.ok) {
         alert('Заказ успешно оформлен!');
-        dispatch(clearCart()); // Очищаем Redux стор
+        dispatch(clearCart());
       } else {
         alert('Ошибка при оформлении заказа');
       }
@@ -105,7 +105,7 @@ export default function CartPage() {
           variant="primary" 
           size="lg" 
           className="w-full sm:w-auto"
-          onClick={handleCheckout} // Привязываем функцию!
+          onClick={handleCheckout}
           disabled={isSubmitting}
         >
           {isSubmitting ? 'Оформление...' : 'Оформить заказ'}

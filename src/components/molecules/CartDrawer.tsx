@@ -5,7 +5,7 @@ import { X, ShoppingBag, Trash2, Minus, Plus } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { removeFromCart, updateQuantity } from '@/store/cartSlice';
 import { formatPrice } from '@/utils/formatPrice';
-import { useRouter } from 'next/navigation'; // Добавляем роутер
+import { useRouter } from 'next/navigation'; 
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -14,20 +14,19 @@ interface CartDrawerProps {
 
 export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const dispatch = useAppDispatch();
-  const router = useRouter(); // Инициализируем роутер
+  const router = useRouter(); 
   const { items } = useAppSelector((state) => state.cart);
   const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const handleCheckout = () => {
-    onClose(); // Сначала закрываем корзину
-    router.push('/checkout'); // Потом перекидываем на страницу
+    onClose(); 
+    router.push('/checkout'); 
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[100] overflow-hidden">
-      {/* Overlay с легким размытием */}
       <div 
         className="absolute inset-0 bg-brand-700/30 backdrop-blur-sm transition-opacity" 
         onClick={onClose} 
@@ -37,7 +36,6 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
         <div className="w-screen max-w-md transform transition-all">
           <div className="flex h-full flex-col bg-[#FDFBF7] shadow-2xl border-l border-brand-200">
             
-            {/* Header */}
             <div className="flex items-center justify-between px-6 py-8 border-b border-brand-100">
               <h2 className="text-2xl font-serif font-bold italic text-gray-900">Your Bag</h2>
               <button onClick={onClose} className="p-2 text-[#800020] hover:rotate-90 transition-transform">
@@ -45,7 +43,6 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               </button>
             </div>
 
-            {/* Items List */}
             <div className="flex-1 overflow-y-auto px-6 py-4 no-scrollbar">
               {items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-64 text-center">
@@ -100,7 +97,6 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               )}
             </div>
 
-            {/* Footer */}
             {items.length > 0 && (
               <div className="border-t-2 border-brand-100 bg-white px-6 py-8 space-y-5">
                 <div className="flex justify-between items-end">
@@ -108,7 +104,6 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                   <span className="text-3xl font-black text-[#800020] tracking-tighter">{formatPrice(totalPrice)}</span>
                 </div>
                 
-                {/* ГЛАВНАЯ КНОПКА: ТЕПЕРЬ ВИДНО ВСЁ */}
                 <button 
                   onClick={handleCheckout}
                   className="w-full bg-[#800020] text-white py-6 rounded-[20px] shadow-2xl shadow-brand-600/30 hover:bg-[#600018] active:scale-[0.97] transition-all duration-300"
