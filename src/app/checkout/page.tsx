@@ -8,21 +8,34 @@ import Link from 'next/link';
 import { ChevronLeft, CreditCard, ShieldCheck, Truck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const checkoutSchema = z.object({
+  firstName: z.string().min(2, "First name is too short"),
+  lastName: z.string().min(2, "Last name is too short"),
+  email: z.string().email("Invalid email address"),
+  address: z.string().min(5, "Address must be at least 5 characters"),
+  city: z.string().min(2, "City name is too short"),
+  postalCode: z.string().min(4, "Invalid postal code"),
+});
+
+type CheckoutFormData = z.infer<typeof checkoutSchema>;
+
 export default function CheckoutPage() {
   const { items } = useAppSelector((state) => state.cart);
   const dispatch = useAppDispatch();
   const router = useRouter();
   
   const [mounted, setMounted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [formData, setFormData] = useState({
-  firstName: '',
-  lastName: '',
-  email: '',
-  address: '',
-  city: '',
-  postalCode: ''
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<CheckoutFormData>({
+    resolver: zodResolver(checkoutSchema),
   });
 
   useEffect(() => {
@@ -31,58 +44,42 @@ export default function CheckoutPage() {
 
   const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const { placeholder, value } = e.target;
-  const nameMap: { [key: string]: string } = {
-    "First Name": "firstName",
-    "Last Name": "lastName",
-    "Email Address": "email",
-    "Address": "address",
-    "City": "city",
-    "Postal Code": "postalCode"
+  const onSubmit = async (data: CheckoutFormData) => {
+    try {
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: items,
+          total: totalPrice,
+          email: data.email,
+          shippingDetails: data,
+        }),
+      });
+
+      if (response.ok) {
+        dispatch(clearCart());
+        router.push('/checkout/success');
+      } else {
+        alert('Server error. Please try again.');
+      }
+    } catch (error) {
+      alert('Network error. Check your connection.');
+    }
   };
 
-  setFormData(prev => ({
-    ...prev,
-    [nameMap[placeholder]]: value
-    }));
+  if (!mounted) return null;
+
+  if (items.length === 0) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-4">
+        <h1 className="text-3xl font-serif italic mb-6">Your bag is empty</h1>
+        <Link href="/" className="bg-[#800020] text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-[#600018] transition-colors">
+          Back to Store
+        </Link>
+      </div>
+    );
   }
-
-  const handlePayNow = async () => {
-  if (!formData.email || !formData.address || !formData.firstName) {
-    alert("Please fill in your name, email, and shipping address.");
-    return;
-  }
-
-  console.log("Processing order for:", formData.email);
-  setIsSubmitting(true);
-
-  try {
-    const response = await fetch('/api/orders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        items: items,
-        total: totalPrice,
-        email: formData.email,
-      }),
-    });
-
-    if (response.ok) {
-      alert(`Success! Thank you, ${formData.firstName}. Your order has been placed.`);
-      dispatch(clearCart());
-      router.push('/');
-    } else {
-      const errorData = await response.json();
-      alert(`Error: ${errorData.error || 'Failed to create order'}`);
-    }
-  } catch (error) {
-    console.error("Submission error:", error);
-    alert('Connection error. Please try again.');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] py-12 px-4 sm:px-6 lg:px-8">
@@ -92,86 +89,61 @@ export default function CheckoutPage() {
           <span className="text-xs font-black uppercase tracking-widest">Back to store</span>
         </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+        <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           <div className="space-y-10">
             <div>
               <h1 className="text-4xl font-serif font-bold italic text-gray-900 mb-2">Checkout</h1>
-              <p className="text-gray-500 italic">Please enter your shipping and payment details.</p>
+              <p className="text-gray-500 italic">Enter your shipping details below.</p>
             </div>
 
-            <section className="space-y-4">
+            <section className="space-y-6">
               <h2 className="text-sm font-black uppercase tracking-[0.2em] text-[#800020] flex items-center gap-2">
                 <Truck size={18} /> Shipping Address
               </h2>
-              <div className="grid grid-cols-2 gap-4">
-  <input 
-    type="text" 
-    placeholder="First Name" 
-    className="checkout-input col-span-1" 
-    value={formData.firstName}
-    onChange={handleInputChange}
-  />
-  <input 
-    type="text" 
-    placeholder="Last Name" 
-    className="checkout-input col-span-1" 
-    value={formData.lastName}
-    onChange={handleInputChange}
-  />
-  <input 
-    type="email" 
-    placeholder="Email Address" 
-    className="checkout-input col-span-2" 
-    value={formData.email}
-    onChange={handleInputChange}
-  />
-  <input 
-    type="text" 
-    placeholder="Address" 
-    className="checkout-input col-span-2" 
-    value={formData.address}
-    onChange={handleInputChange}
-  />
-  <input 
-    type="text" 
-    placeholder="City" 
-    className="checkout-input col-span-1" 
-    value={formData.city}
-    onChange={handleInputChange}
-  />
-  <input 
-    type="text" 
-    placeholder="Postal Code" 
-    className="checkout-input col-span-1" 
-    value={formData.postalCode}
-    onChange={handleInputChange}
-  />
-</div>
-            </section>
-
-            <section className="space-y-4">
-              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-[#800020] flex items-center gap-2">
-                <CreditCard size={18} /> Payment Method
-              </h2>
-              <div className="p-6 border-2 border-[#800020] rounded-2xl bg-white flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-8 bg-gray-100 rounded-md flex items-center justify-center font-bold text-[10px] text-gray-400">CARD</div>
-                  <span className="font-bold text-gray-800">Credit or Debit Card</span>
+              
+              <div className="grid grid-cols-2 gap-x-4 gap-y-6">
+                <div className="col-span-1">
+                  <input {...register('firstName')} placeholder="First Name" className={`checkout-input ${errors.firstName ? 'error-border' : ''}`} />
+                  {errors.firstName && <p className="error-msg">{errors.firstName.message}</p>}
                 </div>
-                <div className="w-5 h-5 border-4 border-[#800020] rounded-full"></div>
+
+                <div className="col-span-1">
+                  <input {...register('lastName')} placeholder="Last Name" className={`checkout-input ${errors.lastName ? 'error-border' : ''}`} />
+                  {errors.lastName && <p className="error-msg">{errors.lastName.message}</p>}
+                </div>
+
+                <div className="col-span-2">
+                  <input {...register('email')} placeholder="Email Address" className={`checkout-input ${errors.email ? 'error-border' : ''}`} />
+                  {errors.email && <p className="error-msg">{errors.email.message}</p>}
+                </div>
+
+                <div className="col-span-2">
+                  <input {...register('address')} placeholder="Street Address" className={`checkout-input ${errors.address ? 'error-border' : ''}`} />
+                  {errors.address && <p className="error-msg">{errors.address.message}</p>}
+                </div>
+
+                <div className="col-span-1">
+                  <input {...register('city')} placeholder="City" className={`checkout-input ${errors.city ? 'error-border' : ''}`} />
+                  {errors.city && <p className="error-msg">{errors.city.message}</p>}
+                </div>
+
+                <div className="col-span-1">
+                  <input {...register('postalCode')} placeholder="Postal Code" className={`checkout-input ${errors.postalCode ? 'error-border' : ''}`} />
+                  {errors.postalCode && <p className="error-msg">{errors.postalCode.message}</p>}
+                </div>
               </div>
             </section>
           </div>
 
           <div className="lg:sticky lg:top-32 h-fit">
-            <div className="bg-white rounded-[2.5rem] p-8 shadow-premium border border-brand-100">
+            <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-gray-100">
               <h2 className="text-xl font-bold text-gray-900 mb-6 uppercase tracking-wider">Order Summary</h2>
               
               <div className="space-y-4 mb-8 max-h-60 overflow-y-auto pr-2 no-scrollbar">
                 {items.map((item) => (
                   <div key={item.id} className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 bg-brand-50 rounded-xl p-2 flex-shrink-0">
+                      <div className="w-16 h-16 bg-gray-50 rounded-xl p-2 flex-shrink-0">
                         <img src={item.thumbnail} alt={item.title} className="w-full h-full object-contain" />
                       </div>
                       <div>
@@ -184,15 +156,7 @@ export default function CheckoutPage() {
                 ))}
               </div>
 
-              <div className="border-t-2 border-brand-50 pt-6 space-y-3">
-                <div className="flex justify-between text-gray-500">
-                  <span className="text-sm">Subtotal</span>
-                  <span className="font-medium">{formatPrice(totalPrice)}</span>
-                </div>
-                <div className="flex justify-between text-gray-500">
-                  <span className="text-sm">Shipping</span>
-                  <span className="font-medium text-green-600 font-bold uppercase text-[10px] tracking-widest">Free</span>
-                </div>
+              <div className="border-t pt-6 space-y-3">
                 <div className="flex justify-between items-end pt-4">
                   <span className="text-sm font-black uppercase tracking-widest">Grand Total</span>
                   <span className="text-3xl font-black text-[#800020]">{formatPrice(totalPrice)}</span>
@@ -200,9 +164,9 @@ export default function CheckoutPage() {
               </div>
 
               <button 
-                onClick={handlePayNow}
+                type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-[#800020] text-white py-6 rounded-2xl mt-8 font-black uppercase tracking-[0.2em] shadow-xl shadow-brand-600/20 hover:bg-[#600018] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-[#800020] text-white py-6 rounded-2xl mt-8 font-black uppercase tracking-[0.2em] shadow-lg hover:bg-[#600018] transition-all disabled:opacity-50 active:scale-[0.98]"
               >
                 {isSubmitting ? 'Processing...' : 'Pay Now'}
               </button>
@@ -213,7 +177,7 @@ export default function CheckoutPage() {
               </div>
             </div>
           </div>
-        </div>
+        </form>
       </div>
 
       <style jsx>{`
@@ -230,6 +194,20 @@ export default function CheckoutPage() {
         }
         .checkout-input:focus {
           border-color: #800020;
+        }
+        .error-border {
+          border-color: #ef4444 !important;
+        }
+        .error-msg {
+          color: #ef4444;
+          font-size: 10px;
+          font-weight: 700;
+          margin-top: 4px;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
         }
       `}</style>
     </div>
