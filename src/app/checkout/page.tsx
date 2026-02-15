@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { ChevronLeft, CreditCard, ShieldCheck, Truck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+import { useUser } from '@clerk/nextjs';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -27,12 +28,14 @@ export default function CheckoutPage() {
   const { items } = useAppSelector((state) => state.cart);
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const { user, isLoaded } = useUser();
   
   const [mounted, setMounted] = useState(false);
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
@@ -41,6 +44,14 @@ export default function CheckoutPage() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (isLoaded && user) {
+      setValue('firstName', user.firstName || '');
+      setValue('lastName', user.lastName || '');
+      setValue('email', user.primaryEmailAddress?.emailAddress || '');
+    }
+  }, [user, isLoaded, setValue]);
 
   const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -53,6 +64,8 @@ export default function CheckoutPage() {
           items: items,
           total: totalPrice,
           email: data.email,
+          clerkId: user?.id, 
+          customerName: `${data.firstName} ${data.lastName}`,
           shippingDetails: data,
         }),
       });
@@ -74,7 +87,7 @@ export default function CheckoutPage() {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center p-4">
         <h1 className="text-3xl font-serif italic mb-6">Your bag is empty</h1>
-        <Link href="/" className="bg-[#800020] text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-[#600018] transition-colors">
+        <Link href="/" className="bg-[#800020] text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-[#600018] transition-all">
           Back to Store
         </Link>
       </div>
@@ -113,7 +126,12 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="col-span-2">
-                  <input {...register('email')} placeholder="Email Address" className={`checkout-input ${errors.email ? 'error-border' : ''}`} />
+                  <input 
+                    {...register('email')} 
+                    placeholder="Email Address" 
+                    readOnly={!!user} 
+                    className={`checkout-input ${errors.email ? 'error-border' : ''} ${user ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`} 
+                  />
                   {errors.email && <p className="error-msg">{errors.email.message}</p>}
                 </div>
 

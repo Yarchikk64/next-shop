@@ -8,10 +8,14 @@ generator client {
 }
 
 model Order {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  createdAt DateTime @default(now())
-  total     Float
-  items     Json
-  status    String   @default("Paid")
-  email     String
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt    DateTime @default(now())
+  total        Float
+  items        Json
+  status       String   @default("Paid")
+  email        String
+  clerkId      String?  // Убрали @index отсюда
+  customerName String?
+
+  @@index([clerkId]) // Добавляем индекс вот так, в конце модели
 }

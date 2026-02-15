@@ -2,12 +2,14 @@
 
 import React, { useState, useCallback } from 'react';
 import Link from 'next/link';
-import { ShoppingCart, ShoppingBag } from 'lucide-react';
+import { ShoppingCart, ShoppingBag, User } from 'lucide-react'; // Добавил User для иконки
 import { useAppSelector } from '@/store/hooks';
 import { useIsMounted } from '@/store/useIsMounted'; 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { SearchInput } from '../atoms/SearchInput';
 import CartDrawer from '../molecules/CartDrawer'; 
+
+import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
 const Header = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -55,7 +57,7 @@ const Header = () => {
               <SearchInput onSearch={handleSearch} />
             </div>
 
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4 sm:gap-6">
               <Link 
                 href="/" 
                 className="hidden lg:block text-xs font-black text-brand-600 hover:text-brand-700 transition-colors tracking-widest uppercase"
@@ -63,7 +65,40 @@ const Header = () => {
                 Catalog
               </Link>
               
-              <div className="h-8 w-[1px] bg-brand-200 hidden sm:block mx-2"></div>
+              <div className="h-8 w-[1px] bg-brand-200 hidden sm:block mx-1"></div>
+
+              <div className="flex items-center min-w-[32px]">
+                <SignedOut>
+                  <SignInButton mode="modal">
+                    <button className="flex items-center gap-2 p-2 text-[#800020] hover:bg-brand-100 rounded-xl transition-all duration-300">
+                      <User size={22} strokeWidth={2.5} />
+                      <span className="hidden sm:block text-[10px] font-black uppercase tracking-widest">Sign In</span>
+                    </button>
+                  </SignInButton>
+                </SignedOut>
+
+                <SignedIn>
+  <div className="flex items-center gap-4">
+    <Link 
+      href="/profile" 
+      className={`hidden md:block text-[10px] font-black uppercase tracking-widest transition-colors ${
+        pathname === '/profile' ? 'text-[#800020]' : 'text-gray-400 hover:text-[#800020]'
+      }`}
+    >
+      My Orders
+    </Link>
+    
+    <UserButton 
+      afterSignOutUrl="/"
+      appearance={{
+        elements: {
+          avatarBox: "w-10 h-10 border-2 border-[#800020] rounded-xl overflow-hidden hover:scale-105 transition-transform"
+        }
+      }}
+    />
+  </div>
+</SignedIn>
+              </div>
 
               <button 
                 onClick={() => setIsCartOpen(true)}
