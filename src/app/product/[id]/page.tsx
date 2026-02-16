@@ -8,6 +8,7 @@ import { addToCart } from '@/store/cartSlice';
 import { formatPrice } from '@/utils/formatPrice';
 import { Star, ChevronLeft, ShoppingBag, ShieldCheck, Truck, RotateCcw } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Product, CartItem } from '@/types/product';
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -35,7 +36,11 @@ export default function ProductPage() {
   );
 
   const handleAddToCart = () => {
-    dispatch(addToCart(product));
+    dispatch(addToCart({
+      ...product,
+      quantity: 1
+    } as CartItem));
+
     toast.success(`${product.title} added to bag`, {
       style: {
         borderRadius: '20px',

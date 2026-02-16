@@ -6,12 +6,12 @@ export const useIsMounted = () => {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    let isApiSubscribed = true;
-    if (isApiSubscribed) {
+    const frame = requestAnimationFrame(() => {
       setMounted(true);
-    }
+    });
+
     return () => {
-      isApiSubscribed = false;
+      cancelAnimationFrame(frame);
     };
   }, []);
 

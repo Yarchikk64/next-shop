@@ -9,11 +9,21 @@ export default function SuccessPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    let isCancelled = false;
+
+    // Используем requestAnimationFrame для установки mounted. 
+    // Это убирает ошибку "cascading renders", так как обновление стейта 
+    // происходит в следующем кадре анимации, а не синхронно в эффекте.
+    const mountFrame = requestAnimationFrame(() => {
+      setMounted(true);
+    });
+    
     const duration = 3 * 1000;
     const end = Date.now() + duration;
 
     const frame = () => {
+      if (isCancelled) return; 
+
       confetti({
         particleCount: 2,
         angle: 60,
@@ -33,9 +43,17 @@ export default function SuccessPage() {
         requestAnimationFrame(frame);
       }
     };
+
     frame();
+
+    return () => {
+      isCancelled = true;
+      cancelAnimationFrame(mountFrame);
+      confetti.reset();
+    };
   }, []);
 
+  // Пока не приземлились на клиент — не рендерим ничего, чтобы не было ошибок гидратации
   if (!mounted) return null;
 
   return (
@@ -47,18 +65,18 @@ export default function SuccessPage() {
           </div>
         </div>
 
-        <h1 className="text-4xl font-serif font-bold italic text-gray-900 mb-4">
+        <h1 className="text-4xl font-serif font-bold italic text-gray-900 mb-4 tracking-tight">
           Thank you for your order!
         </h1>
         <p className="text-gray-500 mb-10 italic">
           Your payment was successful and your order is now being processed. 
-          We've sent a confirmation email to your inbox.
+          We&apos;ve sent a confirmation email to your inbox.
         </p>
 
         <div className="space-y-4">
           <Link 
             href="/" 
-            className="flex items-center justify-center gap-2 w-full bg-[#800020] text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-[#600018] transition-all"
+            className="flex items-center justify-center gap-2 w-full bg-[#800020] text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-[#600018] transition-all shadow-lg active:scale-95"
           >
             <ShoppingBag size={18} />
             Continue Shopping

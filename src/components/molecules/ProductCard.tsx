@@ -14,8 +14,22 @@ export default function ProductCard({ product }: { product: Product }) {
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
-    dispatch(addToCart(product));
-    toast.success('Added to bag');
+    
+    dispatch(addToCart({
+      ...product,
+      quantity: 1
+    }));
+    
+    toast.success(`${product.title} added to bag`, {
+      style: {
+        borderRadius: '15px',
+        background: '#800020',
+        color: '#fff',
+        fontSize: '12px',
+        fontWeight: 'bold',
+        textTransform: 'uppercase',
+      },
+    });
   };
 
   const oldPrice = product.price / (1 - product.discountPercentage / 100);

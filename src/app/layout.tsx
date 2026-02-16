@@ -11,38 +11,36 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider>
-    <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
-      <body className="bg-brand-50 text-gray-900 font-sans antialiased min-h-screen">
-        <Providers>
-          <Header />
-          {children}
-          
-          <Toaster 
-            position="bottom-right" 
-            toastOptions={{
-              duration: 3000,
-              style: {
-                background: '#800020', 
-                color: '#ffffff',
-                borderRadius: '16px',
-                padding: '16px 24px',
-                fontSize: '14px',
-                fontWeight: '900',
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                boxShadow: '0 10px 25px -5px rgba(128, 0, 32, 0.3)',
-              },
-              success: {
-                iconTheme: {
-                  primary: '#ffffff',
-                  secondary: '#800020',
+      <html lang="en" className={`${playfair.variable} ${inter.variable}`} suppressHydrationWarning>
+        <body className="bg-brand-50 text-gray-900 font-sans antialiased min-h-screen">
+          <Providers>
+            <div className="relative flex flex-col min-h-screen">
+              <Header />
+              <main className="flex-grow">
+                {children}
+              </main>
+            </div>
+            
+            <Toaster 
+              position="bottom-right" 
+              toastOptions={{
+                duration: 3000,
+                className: 'font-sans', 
+                style: {
+                  background: '#800020', 
+                  color: '#ffffff',
+                  borderRadius: '16px',
+                  padding: '16px 24px',
+                  fontSize: '12px', 
+                  fontWeight: '800',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
                 },
-              },
-            }} 
-          />
-        </Providers>
-      </body>
-    </html>
+              }} 
+            />
+          </Providers>
+        </body>
+      </html>
     </ClerkProvider>
   );
 }
