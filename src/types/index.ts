@@ -12,6 +12,15 @@ export interface Product {
   images: string[];
 }
 
+export interface CheckoutFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  phone: string;
+}
 
 export interface CartItem extends Product {
   quantity: number;
@@ -33,4 +42,15 @@ export interface Order {
   items: CartItem[]; 
   status: string;
   createdAt?: string;
+}
+
+export interface CartDrawerProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export interface CartFooterProps {
+  totalPrice: number;
+  onCheckout: () => void;
+  onClose: () => void;
 }

@@ -8,7 +8,7 @@ import { addToCart } from '@/store/cartSlice';
 import { formatPrice } from '@/utils/formatPrice';
 import { Star, ChevronLeft, ShoppingBag, ShieldCheck, Truck, RotateCcw } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { Product, CartItem } from '@/types/product';
+import { Product, CartItem } from '@/types/index';
 
 export default function ProductPage() {
   const { id } = useParams();

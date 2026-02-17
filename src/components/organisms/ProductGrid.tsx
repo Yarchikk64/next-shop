@@ -2,7 +2,7 @@
 
 import React from 'react';
 import ProductCard from '@/components/molecules/ProductCard';
-import { Product } from '@/types/product';
+import { Product } from '@/types/index';
 import { Loader2 } from 'lucide-react';
 
 interface ProductGridProps {

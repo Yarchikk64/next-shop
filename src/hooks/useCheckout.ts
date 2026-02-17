@@ -1,12 +1,12 @@
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useUser } from '@clerk/nextjs';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { clearCart } from '@/store/cartSlice';
 import { useRouter } from 'next/navigation';
 import { checkoutSchema } from '@/lib/validations';
-import { CheckoutFormData } from '@/types';
+import { CheckoutFormData } from '@/types/index';
 
 export const useCheckout = () => {
   const { items } = useAppSelector((state) => state.cart);
@@ -16,6 +16,15 @@ export const useCheckout = () => {
 
   const form = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      address: '',
+      city: '',
+      postalCode: '',
+      phone: ''
+    }
   });
 
   useEffect(() => {
@@ -28,7 +37,7 @@ export const useCheckout = () => {
 
   const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const onSubmit = async (data: CheckoutFormData) => {
+  const onSubmit: SubmitHandler<CheckoutFormData> = async (data) => {
     try {
       const response = await fetch('/api/orders', {
         method: 'POST',

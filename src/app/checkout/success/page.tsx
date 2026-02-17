@@ -11,9 +11,6 @@ export default function SuccessPage() {
   useEffect(() => {
     let isCancelled = false;
 
-    // Используем requestAnimationFrame для установки mounted. 
-    // Это убирает ошибку "cascading renders", так как обновление стейта 
-    // происходит в следующем кадре анимации, а не синхронно в эффекте.
     const mountFrame = requestAnimationFrame(() => {
       setMounted(true);
     });
@@ -53,7 +50,6 @@ export default function SuccessPage() {
     };
   }, []);
 
-  // Пока не приземлились на клиент — не рендерим ничего, чтобы не было ошибок гидратации
   if (!mounted) return null;
 
   return (
